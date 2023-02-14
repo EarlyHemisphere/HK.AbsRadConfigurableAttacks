@@ -8,11 +8,11 @@
     <!--<DocumentationFile>$(OutputPath)/$(AssemblyTitle).xml</DocumentationFile>-->
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>AnyRadiance</RootNamespace>
-    <AssemblyName>AnyRadiance</AssemblyName>
+    <RootNamespace>AbsRadConfigurableAttacks</RootNamespace>
+    <AssemblyName>AbsRadConfigurableAttacks</AssemblyName>
     <TargetFramework>net472</TargetFramework>
-    <AssemblyTitle>AnyRadiance</AssemblyTitle>
-    <Product>AnyRadiance</Product>
+    <AssemblyTitle>AbsRadConfigurableAttacks</AssemblyTitle>
+    <Product>AbsRadConfigurableAttacks</Product>
     <Description>A Hollow Knight Mod</Description>
     <Copyright>Copyright © 2023</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
@@ -87,6 +87,9 @@
     </Reference>
     <Reference Include="PlayMaker">
       <HintPath>$(HollowKnightRefs)/PlayMaker.dll</HintPath>
+    </Reference>
+    <Reference Include="Satchel">
+      <HintPath>$(HollowKnightRefs)/Mods/Satchel/Satchel.dll</HintPath>
     </Reference>
     <Reference Include="SFCore">
       <HintPath>$(HollowKnightRefs)/Mods/SFCore/SFCore.dll</HintPath>
