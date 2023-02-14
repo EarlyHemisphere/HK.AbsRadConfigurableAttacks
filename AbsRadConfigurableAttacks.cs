@@ -62,7 +62,7 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
 
     public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggleDelegates) {
         firstPhaseMenu ??= new Menu(
-            name: "First Phase Attack Weights",
+            name: "First Phases Attack Weights",
             elements: new Element[] {
                 new CustomSlider(
                     name: "Nail Sweep Right",
@@ -132,7 +132,7 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
         );
 
         platformPhaseMenu ??= new Menu(
-            name: "First Phase Attack Weights",
+            name: "Platform Phase Attack Weights",
             elements: new Element[] {
                 new CustomSlider(
                     name: "Nail Sweep",
