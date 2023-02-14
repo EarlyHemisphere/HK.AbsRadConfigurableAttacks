@@ -256,9 +256,9 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
 
     private void CheckRepititionCap() {
         if (SettingsAreDefault()) {
-            RemoveAttackRepititionCap();
-        } else {
             AddAttackRepititionCap();
+        } else {
+            RemoveAttackRepititionCap();
         }
     }
 
