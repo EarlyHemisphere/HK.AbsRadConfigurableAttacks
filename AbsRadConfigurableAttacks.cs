@@ -16,7 +16,7 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
         { "nailSweepTop", 0.75f },
         { "eyeBeams", 1f },
         { "beamSweepLeft", 0.75f },
-        { "beamSweepRight", 0.5f },
+        { "beamSweepRight", 0.75f },
         { "nailFan", 1f },
         { "orbs", 1f },
     };
