@@ -237,7 +237,7 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
     private void ResetFirstPhases() {
         localSettings.firstPhase = new Dictionary<string, float>(firstPhaseDefaults);
         UpdateWeightsFSM();
-        RemoveFirstPhasesAttackRepititionCap();
+        AddFirstPhasesAttackRepititionCap();
         foreach (var num in Enumerable.Range(0, 8)) {
             HorizontalOption elem = firstPhaseMenu.Find($"firstPhases{num+1}") as HorizontalOption;
             elem.Update();
@@ -247,7 +247,7 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
     private void ResetPlatsPhase() {
         localSettings.platformPhase = new Dictionary<string, float>(platformPhaseDefaults);
         UpdateWeightsFSM();
-        RemovePlatsAttackRepititionCap();
+        AddPlatsAttackRepititionCap();
         foreach (var num in Enumerable.Range(0, 6)) {
             HorizontalOption elem = platformPhaseMenu.Find($"platformPhase{num+1}") as HorizontalOption;
             elem.Update();
@@ -258,8 +258,8 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
         localSettings.firstPhase = new Dictionary<string, float>(firstPhaseDefaults);
         localSettings.platformPhase = new Dictionary<string, float>(platformPhaseDefaults);
         UpdateWeightsFSM();
-        RemoveFirstPhasesAttackRepititionCap();
-        RemovePlatsAttackRepititionCap();
+        AddFirstPhasesAttackRepititionCap();
+        AddPlatsAttackRepititionCap();
     }
 
     private int LoadSetting(string key, int phase = 1) {
