@@ -9,7 +9,7 @@ using System.Linq;
 public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<LocalSettings> {
     private Menu menuRef, firstPhaseMenu, platformPhaseMenu = null;
     public static AbsRadConfigurableAttacks instance;
-    private PlayMakerFSM attackChoicesFSM = null;
+    private readonly List<PlayMakerFSM> attackChoicesFSMs = new List<PlayMakerFSM>();
     public static Dictionary<string, float> firstPhaseDefaults = new Dictionary<string, float>() {
         { "nailSweepRight", 0.5f },
         { "nailSweepLeft", 0.5f },
@@ -64,8 +64,8 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
     private void OnFsmEnable(On.PlayMakerFSM.orig_OnEnable orig, PlayMakerFSM self) {
         orig(self);
 
-        if (self.FsmName == "Attack Choices" && attackChoicesFSM == null) {
-            attackChoicesFSM = self;
+        if (self.FsmName == "Attack Choices") {
+            attackChoicesFSMs.Add(self);
             UpdateWeightsFSM();
             CheckRepititionCap();
         }
@@ -280,49 +280,53 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
     }
 
     private void UpdateWeightsFSM() {
-        if (attackChoicesFSM == null) return;
+        if (attackChoicesFSMs.Count == 0) return;
 
-        attackChoicesFSM.GetAction<SendRandomEventV3>("A1 Choice", 1).weights = new FsmFloat[]{
-            localSettings.firstPhase["nailSweepRight"],
-            localSettings.firstPhase["nailSweepLeft"],
-            localSettings.firstPhase["nailSweepTop"],
-            localSettings.firstPhase["eyeBeams"],
-            localSettings.firstPhase["beamSweepLeft"],
-            localSettings.firstPhase["beamSweepRight"],
-            localSettings.firstPhase["nailFan"],
-            localSettings.firstPhase["orbs"]
-        };
-        attackChoicesFSM.GetAction<SendRandomEventV3>("A2 Choice", 1).weights = new FsmFloat[]{
-            localSettings.platformPhase["nailSweep"],
-            localSettings.platformPhase["nailFan"],
-            localSettings.platformPhase["orbs"],
-            localSettings.platformPhase["eyeBeams"],
-            localSettings.platformPhase["beamSweepLeft"],
-            localSettings.platformPhase["beamSweepRight"],
-        };
+        attackChoicesFSMs.ForEach(fsm => {
+            fsm.GetAction<SendRandomEventV3>("A1 Choice", 1).weights = new FsmFloat[]{
+                localSettings.firstPhase["nailSweepRight"],
+                localSettings.firstPhase["nailSweepLeft"],
+                localSettings.firstPhase["nailSweepTop"],
+                localSettings.firstPhase["eyeBeams"],
+                localSettings.firstPhase["beamSweepLeft"],
+                localSettings.firstPhase["beamSweepRight"],
+                localSettings.firstPhase["nailFan"],
+                localSettings.firstPhase["orbs"]
+            };
+            fsm.GetAction<SendRandomEventV3>("A2 Choice", 1).weights = new FsmFloat[]{
+                localSettings.platformPhase["nailSweep"],
+                localSettings.platformPhase["nailFan"],
+                localSettings.platformPhase["orbs"],
+                localSettings.platformPhase["eyeBeams"],
+                localSettings.platformPhase["beamSweepLeft"],
+                localSettings.platformPhase["beamSweepRight"],
+            };
+        });
     }
 
     private void UpdateWeightsToDefaultsFSM() {
-        if (attackChoicesFSM == null) return;
+        if (attackChoicesFSMs.Count == 0) return;
 
-        attackChoicesFSM.GetAction<SendRandomEventV3>("A1 Choice", 1).weights = new FsmFloat[]{
-            firstPhaseDefaults["nailSweepRight"],
-            firstPhaseDefaults["nailSweepLeft"],
-            firstPhaseDefaults["nailSweepTop"],
-            firstPhaseDefaults["eyeBeams"],
-            firstPhaseDefaults["beamSweepLeft"],
-            firstPhaseDefaults["beamSweepRight"],
-            firstPhaseDefaults["nailFan"],
-            firstPhaseDefaults["orbs"]
-        };
-        attackChoicesFSM.GetAction<SendRandomEventV3>("A2 Choice", 1).weights = new FsmFloat[]{
-            platformPhaseDefaults["nailSweep"],
-            platformPhaseDefaults["nailFan"],
-            platformPhaseDefaults["orbs"],
-            platformPhaseDefaults["eyeBeams"],
-            platformPhaseDefaults["beamSweepLeft"],
-            platformPhaseDefaults["beamSweepRight"],
-        };
+        attackChoicesFSMs.ForEach(fsm => {
+            fsm.GetAction<SendRandomEventV3>("A1 Choice", 1).weights = new FsmFloat[]{
+                firstPhaseDefaults["nailSweepRight"],
+                firstPhaseDefaults["nailSweepLeft"],
+                firstPhaseDefaults["nailSweepTop"],
+                firstPhaseDefaults["eyeBeams"],
+                firstPhaseDefaults["beamSweepLeft"],
+                firstPhaseDefaults["beamSweepRight"],
+                firstPhaseDefaults["nailFan"],
+                firstPhaseDefaults["orbs"]
+            };
+            fsm.GetAction<SendRandomEventV3>("A2 Choice", 1).weights = new FsmFloat[]{
+                platformPhaseDefaults["nailSweep"],
+                platformPhaseDefaults["nailFan"],
+                platformPhaseDefaults["orbs"],
+                platformPhaseDefaults["eyeBeams"],
+                platformPhaseDefaults["beamSweepLeft"],
+                platformPhaseDefaults["beamSweepRight"],
+            };
+        });
     }
 
     private bool FirstPhaseSettingsAreDefault() {
@@ -358,31 +362,43 @@ public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<Loc
     }
 
     private void RemoveFirstPhasesAttackRepititionCap() {
-        if (attackChoicesFSM == null) return;
-        SendRandomEventV3 action = attackChoicesFSM.GetAction<SendRandomEventV3>("A1 Choice", 1);
-        action.eventMax = new FsmInt[]{10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000};
-        action.missedMax = new FsmInt[]{10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000};
+        if (attackChoicesFSMs.Count == 0) return;
+
+        attackChoicesFSMs.ForEach(fsm => {
+            SendRandomEventV3 action = fsm.GetAction<SendRandomEventV3>("A1 Choice", 1);
+            action.eventMax = new FsmInt[]{10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000};
+            action.missedMax = new FsmInt[]{10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000};
+        });
     }
 
     private void AddFirstPhasesAttackRepititionCap() {
-        if (attackChoicesFSM == null) return;
-        SendRandomEventV3 action = attackChoicesFSM.GetAction<SendRandomEventV3>("A1 Choice", 1);
-        action.eventMax = new FsmInt[]{1, 1, 1, 2, 1, 1, 2, 1};
-        action.missedMax = new FsmInt[]{12, 12, 12, 10, 12, 12, 10, 12};
+        if (attackChoicesFSMs.Count == 0) return;
+
+        attackChoicesFSMs.ForEach(fsm => {
+            SendRandomEventV3 action = fsm.GetAction<SendRandomEventV3>("A1 Choice", 1);
+            action.eventMax = new FsmInt[]{1, 1, 1, 2, 1, 1, 2, 1};
+            action.missedMax = new FsmInt[]{12, 12, 12, 10, 12, 12, 10, 12};
+        });
     }
 
     private void RemovePlatsAttackRepititionCap() {
-        if (attackChoicesFSM == null) return;
-        SendRandomEventV3 action = attackChoicesFSM.GetAction<SendRandomEventV3>("A2 Choice", 1);
-        action.eventMax = new FsmInt[]{10000, 10000, 10000, 10000, 10000, 10000};
-        action.missedMax = new FsmInt[]{10000, 10000, 10000, 10000, 10000, 10000};
+        if (attackChoicesFSMs.Count == 0) return;
+
+        attackChoicesFSMs.ForEach(fsm => {
+            SendRandomEventV3 action = fsm.GetAction<SendRandomEventV3>("A2 Choice", 1);
+            action.eventMax = new FsmInt[]{10000, 10000, 10000, 10000, 10000, 10000};
+            action.missedMax = new FsmInt[]{10000, 10000, 10000, 10000, 10000, 10000};
+        });
     }
 
     private void AddPlatsAttackRepititionCap() {
-        if (attackChoicesFSM == null) return;
-        SendRandomEventV3 action = attackChoicesFSM.GetAction<SendRandomEventV3>("A2 Choice", 1);
-        action.eventMax = new FsmInt[]{1, 2, 1, 2, 1, 1};
-        action.missedMax = new FsmInt[]{12, 10, 10, 10, 12, 12};
+        if (attackChoicesFSMs.Count == 0) return;
+
+        attackChoicesFSMs.ForEach(fsm => {
+            SendRandomEventV3 action = fsm.GetAction<SendRandomEventV3>("A2 Choice", 1);
+            action.eventMax = new FsmInt[]{1, 2, 1, 2, 1, 1};
+            action.missedMax = new FsmInt[]{12, 10, 10, 10, 12, 12};
+        });
     }
 }
 
