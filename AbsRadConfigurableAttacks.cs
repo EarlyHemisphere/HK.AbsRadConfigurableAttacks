@@ -10,7 +10,7 @@ namespace AbsRadConfigurableAttacks {
     public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<LocalSettings> {
         private Menu menuRef, firstPhaseMenu, platformPhaseMenu = null;
         public static AbsRadConfigurableAttacks instance;
-        private readonly List<PlayMakerFSM> attackChoicesFSMs = new List<PlayMakerFSM>();
+        private List<PlayMakerFSM> attackChoicesFSMs = new List<PlayMakerFSM>();
         public static Dictionary<string, float> firstPhaseDefaults = new Dictionary<string, float>() {
             { "nailSweepRight", 0.5f },
             { "nailSweepLeft", 0.5f },
@@ -58,6 +58,7 @@ namespace AbsRadConfigurableAttacks {
             Log("Initializing");
 
             On.PlayMakerFSM.OnEnable += OnFsmEnable;
+            UnityEngine.SceneManagement.SceneManager.activeSceneChanged += SceneChanged;
 
             Log("Initialized");
         }
@@ -69,6 +70,12 @@ namespace AbsRadConfigurableAttacks {
                 attackChoicesFSMs.Add(self);
                 UpdateWeightsFSM();
                 CheckRepititionCap();
+            }
+        }
+
+        private void SceneChanged(UnityEngine.SceneManagement.Scene _, UnityEngine.SceneManagement.Scene to) {
+            if (to.name != "GG_Radiance") {
+                attackChoicesFSMs = new List<PlayMakerFSM>();
             }
         }
 
