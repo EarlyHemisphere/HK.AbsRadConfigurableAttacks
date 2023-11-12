@@ -305,31 +305,6 @@ namespace AbsRadConfigurableAttacks {
             });
         }
 
-        private void UpdateWeightsToDefaultsFSM() {
-            if (attackChoicesFSMs.Count == 0) return;
-
-            attackChoicesFSMs.ForEach(fsm => {
-                fsm.GetAction<SendRandomEventV3>("A1 Choice", 1).weights = new FsmFloat[]{
-                    firstPhaseDefaults["nailSweepRight"],
-                    firstPhaseDefaults["nailSweepLeft"],
-                    firstPhaseDefaults["nailSweepTop"],
-                    firstPhaseDefaults["eyeBeams"],
-                    firstPhaseDefaults["beamSweepLeft"],
-                    firstPhaseDefaults["beamSweepRight"],
-                    firstPhaseDefaults["nailFan"],
-                    firstPhaseDefaults["orbs"]
-                };
-                fsm.GetAction<SendRandomEventV3>("A2 Choice", 1).weights = new FsmFloat[]{
-                    platformPhaseDefaults["nailSweep"],
-                    platformPhaseDefaults["nailFan"],
-                    platformPhaseDefaults["orbs"],
-                    platformPhaseDefaults["eyeBeams"],
-                    platformPhaseDefaults["beamSweepLeft"],
-                    platformPhaseDefaults["beamSweepRight"],
-                };
-            });
-        }
-
         private bool FirstPhaseSettingsAreDefault() {
             foreach (var key in localSettings.firstPhase.Keys) {
                 if (!localSettings.firstPhase[key].Equals(firstPhaseDefaults[key])) {
