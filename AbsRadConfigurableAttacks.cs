@@ -11,7 +11,7 @@ namespace AbsRadConfigurableAttacks {
         private Menu menuRef, firstPhaseMenu, platformPhaseMenu = null;
         public static AbsRadConfigurableAttacks instance;
         private List<PlayMakerFSM> attackChoicesFSMs = new List<PlayMakerFSM>();
-        public static Dictionary<string, float> firstPhaseDefaults = new Dictionary<string, float>() {
+        public static Dictionary<string, float> firstPhaseDefaultWeights = new Dictionary<string, float>() {
             { "nailSweepRight", 0.5f },
             { "nailSweepLeft", 0.5f },
             { "nailSweepTop", 0.75f },
@@ -21,7 +21,9 @@ namespace AbsRadConfigurableAttacks {
             { "nailFan", 1f },
             { "orbs", 1f },
         };
-        public static Dictionary<string, float> platformPhaseDefaults = new Dictionary<string, float>(){
+        public static List<int> firstPhaseDefaultEventMax = new List<int>(){1, 1, 1, 2, 1, 1, 2, 1};
+        public static List<int> firstPhaseDefaultMissedMax = new List<int>(){12, 12, 12, 10, 12, 12, 10, 12};
+        public static Dictionary<string, float> platformPhaseDefaultWeights = new Dictionary<string, float>(){
             { "nailSweep", 0.5f },
             { "eyeBeams", 1f },
             { "beamSweepLeft", 0.75f },
@@ -29,6 +31,8 @@ namespace AbsRadConfigurableAttacks {
             { "nailFan", 1f },
             { "orbs", 1f },
         };
+        public static List<int> platformPhaseDefaultEventMax = new List<int>(){1, 2, 1, 2, 1, 1};
+        public static List<int> platformPhaseDefaultMissedMax = new List<int>(){12, 10, 10, 10, 12, 12};
         
         private static Dictionary<float, int> weightToIndex = new Dictionary<float, int>() {
             { 0f, 0 },
@@ -68,8 +72,7 @@ namespace AbsRadConfigurableAttacks {
 
             if (self.FsmName == "Attack Choices") {
                 attackChoicesFSMs.Add(self);
-                UpdateWeightsFSM();
-                CheckRepititionCap();
+                UpdateWeightsFSMs();
             }
         }
 
@@ -243,9 +246,8 @@ namespace AbsRadConfigurableAttacks {
         }
 
         private void ResetFirstPhases() {
-            localSettings.firstPhase = new Dictionary<string, float>(firstPhaseDefaults);
-            UpdateWeightsFSM();
-            AddFirstPhasesAttackRepititionCap();
+            localSettings.firstPhase = new Dictionary<string, float>(firstPhaseDefaultWeights);
+            UpdateWeightsFSMs();
             foreach (var num in Enumerable.Range(0, 8)) {
                 HorizontalOption elem = firstPhaseMenu.Find($"firstPhases{num+1}") as HorizontalOption;
                 elem.Update();
@@ -253,9 +255,8 @@ namespace AbsRadConfigurableAttacks {
         }
 
         private void ResetPlatsPhase() {
-            localSettings.platformPhase = new Dictionary<string, float>(platformPhaseDefaults);
-            UpdateWeightsFSM();
-            AddPlatsAttackRepititionCap();
+            localSettings.platformPhase = new Dictionary<string, float>(platformPhaseDefaultWeights);
+            UpdateWeightsFSMs();
             foreach (var num in Enumerable.Range(0, 6)) {
                 HorizontalOption elem = platformPhaseMenu.Find($"platformPhase{num+1}") as HorizontalOption;
                 elem.Update();
@@ -263,11 +264,9 @@ namespace AbsRadConfigurableAttacks {
         }
 
         private void ResetAllPhases() {
-            localSettings.firstPhase = new Dictionary<string, float>(firstPhaseDefaults);
-            localSettings.platformPhase = new Dictionary<string, float>(platformPhaseDefaults);
-            UpdateWeightsFSM();
-            AddFirstPhasesAttackRepititionCap();
-            AddPlatsAttackRepititionCap();
+            localSettings.firstPhase = new Dictionary<string, float>(firstPhaseDefaultWeights);
+            localSettings.platformPhase = new Dictionary<string, float>(platformPhaseDefaultWeights);
+            UpdateWeightsFSMs();
         }
 
         private int LoadSetting(string key, int phase = 1) {
@@ -283,11 +282,10 @@ namespace AbsRadConfigurableAttacks {
             } else {
                 localSettings.platformPhase[key] = indexToWeight[index];
             }
-            UpdateWeightsFSM();
-            CheckRepititionCap();
+            UpdateWeightsFSMs();
         }
 
-        private void UpdateWeightsFSM() {
+        private void UpdateWeightsFSMs() {
             if (attackChoicesFSMs.Count == 0) return;
 
             attackChoicesFSMs.ForEach(fsm => {
@@ -310,11 +308,37 @@ namespace AbsRadConfigurableAttacks {
                     localSettings.platformPhase["beamSweepRight"],
                 };
             });
+
+            UpdateEventMax();
+            UpdateMissedMax();
+        }
+
+        private void UpdateEventMax() {
+            attackChoicesFSMs.ForEach(fsm => {
+                fsm.GetAction<SendRandomEventV3>("A1 Choice", 1).eventMax = new FsmInt[]{
+
+                }
+            });
+        }
+
+        private void UpdateMissedMax() {
+            attackChoicesFSMs.ForEach(fsm => {
+                fsm.GetAction<SendRandomEventV3>("A1 Choice", 1).missedMax = new FsmInt[]{
+                    localSettings.firstPhase["nailSweepRight"] != 0 ? firstPhaseDefaultMissedMax[0] : 10000,
+                    localSettings.firstPhase["nailSweepLeft"] != 0 ? firstPhaseDefaultMissedMax[1] : 10000,
+                    localSettings.firstPhase["nailSweepTop"] != 0 ? firstPhaseDefaultMissedMax[2] : 10000,
+                    localSettings.firstPhase["eyeBeams"] != 0 ? firstPhaseDefaultMissedMax[3] : 10000,
+                    localSettings.firstPhase["beamSweepLeft"] != 0 ? firstPhaseDefaultMissedMax[4] : 10000,
+                    localSettings.firstPhase["beamSweepRight"] != 0 ? firstPhaseDefaultMissedMax[5] : 10000,
+                    localSettings.firstPhase["nailFan"] != 0 ? firstPhaseDefaultMissedMax[6] : 10000,
+                    localSettings.firstPhase["orbs"] != 0 ? firstPhaseDefaultMissedMax[7] : 10000
+                };
+            });
         }
 
         private bool FirstPhaseSettingsAreDefault() {
             foreach (var key in localSettings.firstPhase.Keys) {
-                if (!localSettings.firstPhase[key].Equals(firstPhaseDefaults[key])) {
+                if (!localSettings.firstPhase[key].Equals(firstPhaseDefaultWeights[key])) {
                     return false;
                 }
             }
@@ -323,7 +347,7 @@ namespace AbsRadConfigurableAttacks {
 
         private bool PlatsSettingsAreDefault() {
             foreach (var key in localSettings.platformPhase.Keys) {
-                if (!localSettings.platformPhase[key].Equals(platformPhaseDefaults[key])) {
+                if (!localSettings.platformPhase[key].Equals(platformPhaseDefaultWeights[key])) {
                     return false;
                 }
             }
@@ -386,7 +410,7 @@ namespace AbsRadConfigurableAttacks {
     }
 
     public class LocalSettings {
-        public Dictionary<string, float> firstPhase = new Dictionary<string, float>(AbsRadConfigurableAttacks.firstPhaseDefaults);
-        public Dictionary<string, float> platformPhase = new Dictionary<string, float>(AbsRadConfigurableAttacks.platformPhaseDefaults);
+        public Dictionary<string, float> firstPhase = new Dictionary<string, float>(AbsRadConfigurableAttacks.firstPhaseDefaultWeights);
+        public Dictionary<string, float> platformPhase = new Dictionary<string, float>(AbsRadConfigurableAttacks.platformPhaseDefaultWeights);
     }
 }
