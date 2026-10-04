@@ -5,12 +5,14 @@ using SFCore.Utils;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using System.Linq;
+using UnityEngine;
 
 namespace AbsRadConfigurableAttacks {
     public class AbsRadConfigurableAttacks : Mod, ICustomMenuMod, ILocalSettings<LocalSettings> {
         private Menu menuRef, firstPhaseMenu, platformPhaseMenu = null;
         public static AbsRadConfigurableAttacks instance;
         private List<PlayMakerFSM> attackChoicesFSMs = new List<PlayMakerFSM>();
+        private static RngIndicatorUI indicatorUI;
         public static Dictionary<string, float> firstPhaseDefaults = new Dictionary<string, float>() {
             { "nailSweepRight", 0.5f },
             { "nailSweepLeft", 0.5f },
@@ -59,6 +61,7 @@ namespace AbsRadConfigurableAttacks {
 
             On.PlayMakerFSM.OnEnable += OnFsmEnable;
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += SceneChanged;
+            indicatorUI = new GameObject("AbsRadRngIndicator").AddComponent<RngIndicatorUI>();
 
             Log("Initialized");
         }
@@ -70,6 +73,19 @@ namespace AbsRadConfigurableAttacks {
                 attackChoicesFSMs.Add(self);
                 UpdateWeightsFSM();
                 CheckRepititionCap();
+            } else if (self.gameObject.name == "Absolute Radiance" && self.FsmName == "Control") {
+                self.AddAction("Arena 1 Start", new CallMethod {
+                    behaviour = new FsmObject { Value = indicatorUI },
+                    methodName = "ShowFirstPhaseIfAltered",
+                    parameters = new FsmVar[0],
+                    everyFrame = false,
+                });
+                self.AddAction("Abyss Up", new CallMethod {
+                    behaviour = new FsmObject { Value = indicatorUI },
+                    methodName = "ShowPlatsPhaseIfAltered",
+                    parameters = new FsmVar[0],
+                    everyFrame = false
+                });
             }
         }
 
@@ -312,7 +328,7 @@ namespace AbsRadConfigurableAttacks {
             });
         }
 
-        private bool FirstPhaseSettingsAreDefault() {
+        public bool FirstPhaseSettingsAreDefault() {
             foreach (var key in localSettings.firstPhase.Keys) {
                 if (!localSettings.firstPhase[key].Equals(firstPhaseDefaults[key])) {
                     return false;
@@ -321,7 +337,7 @@ namespace AbsRadConfigurableAttacks {
             return true;
         }
 
-        private bool PlatsSettingsAreDefault() {
+        public bool PlatsSettingsAreDefault() {
             foreach (var key in localSettings.platformPhase.Keys) {
                 if (!localSettings.platformPhase[key].Equals(platformPhaseDefaults[key])) {
                     return false;
